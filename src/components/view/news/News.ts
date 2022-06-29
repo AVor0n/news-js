@@ -1,54 +1,52 @@
-import { Source } from '../sources/Sources';
+import { SourceItem } from '../sources/sources';
 import './news.css';
 
-export type Article = {
-    author: string;
-    source: Source;
-    publishedAt: string;
-    urlToImage: string;
-    description: string;
+export interface NewsItem {
+    urlToImage?: string;
     url: string;
+    author: string;
+    publishedAt: string;
     title: string;
-};
+    description: string;
+    source: SourceItem;
+}
 
 class News {
-    draw(data: Article[]) {
+    draw(data: Array<NewsItem>) {
         const news = data.length >= 10 ? data.filter((_item, idx) => idx < 10) : data;
 
         const fragment = document.createDocumentFragment();
-        const newsItemTemp = document.querySelector<HTMLTemplateElement>('#newsItemTemp');
-        if (!newsItemTemp) throw new Error('На странице отсутствует #newsItemTemp');
+        const newsItemTemp = document.querySelector('#newsItemTemp') as HTMLTemplateElement;
 
         news.forEach((item, idx) => {
-            const $newsClone = newsItemTemp.content.cloneNode(true) as HTMLElement;
-            const $newsItem = $newsClone.querySelector<HTMLDivElement>('.news__item');
-            const $newsMetaPhoto = $newsClone.querySelector<HTMLImageElement>('.news__meta-photo');
-            const $newsMetaAuthor = $newsClone.querySelector<HTMLElement>('.news__meta-author');
-            const $newsMetaDate = $newsClone.querySelector<HTMLElement>('.news__meta-date');
+            const newsClone = newsItemTemp.content.cloneNode(true) as Element;
+            const newsItem = newsClone.querySelector('.news__item') as HTMLElement;
+            const newsMetaPhoto = newsClone.querySelector('.news__meta-photo') as HTMLElement;
+            const newsMetaAuthor = newsClone.querySelector('.news__meta-author') as HTMLElement;
+            const newsMetaDate = newsClone.querySelector('.news__meta-date') as HTMLElement;
+            const descrTitle = newsClone.querySelector('.news__description-title') as HTMLElement;
+            const descrSource = newsClone.querySelector('.news__description-source') as HTMLElement;
+            const descrContent = newsClone.querySelector('.news__description-content') as HTMLElement;
+            const readMoreLink = newsClone.querySelector('.news__read-more a') as HTMLElement;
+            if (idx % 2) newsItem.classList.add('alt');
 
-            idx % 2 && $newsItem && $newsItem.classList.add('alt');
+            if (newsMetaPhoto)
+                newsMetaPhoto.style.backgroundImage = `url(${item.urlToImage || 'img/news_placeholder.jpg'})`;
+            newsMetaAuthor.textContent = item.author || item.source.name;
+            newsMetaDate.textContent = item.publishedAt.slice(0, 10).split('-').reverse().join('-');
 
-            $newsMetaPhoto &&
-                ($newsMetaPhoto.style.backgroundImage = `url(${item.urlToImage || 'img/news_placeholder.jpg'})`);
-            $newsMetaAuthor && ($newsMetaAuthor.textContent = item.author || item.source.name);
-            $newsMetaDate && ($newsMetaDate.textContent = item.publishedAt.slice(0, 10).split('-').reverse().join('-'));
+            descrTitle.textContent = item.title;
+            descrSource.textContent = item.source.name;
+            descrContent.textContent = item.description;
+            readMoreLink.setAttribute('href', item.url);
 
-            const $newsDescriptionTitle = $newsClone.querySelector('.news__description-title');
-            const $newsDescriptionSource = $newsClone.querySelector('.news__description-source');
-            const $newsDescriptionContent = $newsClone.querySelector('.news__description-content');
-            const $newsReadMore = $newsClone.querySelector('.news__read-more a');
-            $newsDescriptionTitle && ($newsDescriptionTitle.textContent = item.title);
-            $newsDescriptionSource && ($newsDescriptionSource.textContent = item.source.name);
-            $newsDescriptionContent && ($newsDescriptionContent.textContent = item.description);
-            $newsReadMore && $newsReadMore.setAttribute('href', item.url);
-
-            fragment.append($newsClone);
+            fragment.append(newsClone);
         });
 
-        const $news = document.querySelector<HTMLElement>('.news');
-        if (!$news) throw new Error('На странице отсутствует #news');
-        $news.innerHTML = '';
-        $news.appendChild(fragment);
+        const newsElement = document.querySelector('.news') as HTMLElement;
+
+        newsElement.innerHTML = '';
+        newsElement.appendChild(fragment);
     }
 }
 

@@ -1,19 +1,23 @@
-import AppLoader from './AppLoader';
+import AppLoader from './appLoader';
 
 class AppController extends AppLoader {
-    getSources(callback: () => void) {
-        super.getResp({ endpoint: 'sources' }, callback);
+    getSources(callback: Function) {
+        super.getResp(
+            {
+                endpoint: 'sources',
+            },
+            callback
+        );
     }
 
-    getNews(e: Event, callback: () => void) {
+    getNews(e: Event, callback: Function) {
         let target = e.target as HTMLElement;
         const newsContainer = e.currentTarget as HTMLElement;
-
         while (target !== newsContainer) {
             if (target.classList.contains('source__item')) {
                 const sourceId = target.getAttribute('data-source-id');
-                if (newsContainer.getAttribute('data-source') !== sourceId) {
-                    newsContainer.setAttribute('data-source', sourceId || 'Источник неизвестен');
+                if (sourceId && newsContainer.getAttribute('data-source') !== sourceId) {
+                    newsContainer.setAttribute('data-source', sourceId);
                     super.getResp(
                         {
                             endpoint: 'everything',
@@ -21,12 +25,12 @@ class AppController extends AppLoader {
                                 sources: sourceId,
                             },
                         },
-                        callback,
+                        callback
                     );
                 }
                 return;
             }
-            target = target.parentNode as HTMLElement;
+            if (target.parentElement) target = target.parentElement;
         }
     }
 }

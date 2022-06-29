@@ -1,26 +1,28 @@
-type News = {
-    data: string[];
+type LoaderOptions = {
+    [key: string]: string | null;
+    // apiKey?: string;
+    // sources?: string;
 };
-
-type Endpoint = 'everything' | 'sources';
+type RequestMethods = 'POST' | 'GET' | 'PUT' | 'DELETE';
 
 class Loader {
     baseLink: string;
-    options: Record<string, string>;
-
-    constructor(baseLink: string, options: Record<string, string>) {
+    options?: LoaderOptions;
+    constructor(baseLink: string, options?: LoaderOptions) {
         this.baseLink = baseLink;
         this.options = options;
     }
 
     getResp(
-        { endpoint, method = 'GET' }: { endpoint: Endpoint; method?: Request['method'] },
-        callback = () => console.error('No callback for GET response'),
+        { endpoint, options = {} }: { endpoint: string; options?: LoaderOptions },
+        callback: Function = () => {
+            console.error('No callback for GET response');
+        }
     ) {
-        this.load(method, endpoint, callback);
+        this.load('GET', endpoint, callback, options);
     }
 
-    errorHandler(this: void, res: Response) {
+    errorHandler(res: { ok: boolean; status: number; statusText: string; json: () => {} }) {
         if (!res.ok) {
             if (res.status === 401 || res.status === 404)
                 console.log(`Sorry, but there is ${res.status} error: ${res.statusText}`);
@@ -30,23 +32,23 @@ class Loader {
         return res;
     }
 
-    makeUrl(options: Record<string, string>, endpoint: string) {
+    makeUrl(options: LoaderOptions, endpoint: string) {
         const urlOptions = { ...this.options, ...options };
         let url = `${this.baseLink}${endpoint}?`;
 
-        Object.keys(urlOptions).forEach(key => {
+        Object.keys(urlOptions).forEach((key) => {
             url += `${key}=${urlOptions[key]}&`;
         });
 
         return url.slice(0, -1);
     }
 
-    load(method: Request['method'], endpoint: string, callback: (data: News) => void, options = {}) {
+    load(method: RequestMethods, endpoint: string, callback: Function, options: LoaderOptions = {}) {
         fetch(this.makeUrl(options, endpoint), { method })
-            .then<Response>(this.errorHandler)
-            .then<News>(res => res.json())
-            .then<void>(data => callback(data))
-            .catch(err => console.error(err));
+            .then(this.errorHandler)
+            .then((res) => res.json())
+            .then((data) => callback(data))
+            .catch((err) => console.error(err));
     }
 }
 
