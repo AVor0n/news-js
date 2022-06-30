@@ -1,4 +1,5 @@
-import AppController from '../controller/Controller';
+import { $ } from '../../utils/common';
+import AppController from '../controller/AppController';
 import { AppView } from '../view/AppView';
 
 class App {
@@ -11,8 +12,7 @@ class App {
     }
 
     start() {
-        const sources = document.querySelector<HTMLElement>('.sources');
-        sources && sources.addEventListener('click', e => this.controller.getNews(e, data => this.view.drawNews(data)));
+        $('.sources').addEventListener('click', e => this.controller.getNews(e, data => this.view.drawNews(data)));
         this.controller.getSources(data => this.view.drawSources(data));
     }
 }

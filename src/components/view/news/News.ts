@@ -1,3 +1,4 @@
+import { $ } from '../../../utils/common';
 import { Source } from '../sources/Sources';
 import './news.css';
 
@@ -15,40 +16,35 @@ class News {
     draw(data: Article[]) {
         const news = data.length >= 10 ? data.filter((_item, idx) => idx < 10) : data;
 
-        const fragment = document.createDocumentFragment();
-        const newsItemTemp = document.querySelector<HTMLTemplateElement>('#newsItemTemp');
-        if (!newsItemTemp) throw new Error('На странице отсутствует #newsItemTemp');
+        const $fragment = document.createDocumentFragment();
 
         news.forEach((item, idx) => {
-            const $newsClone = newsItemTemp.content.cloneNode(true) as HTMLElement;
-            const $newsItem = $newsClone.querySelector<HTMLDivElement>('.news__item');
-            const $newsMetaPhoto = $newsClone.querySelector<HTMLImageElement>('.news__meta-photo');
-            const $newsMetaAuthor = $newsClone.querySelector<HTMLElement>('.news__meta-author');
-            const $newsMetaDate = $newsClone.querySelector<HTMLElement>('.news__meta-date');
+            const $newsClone = $<HTMLTemplateElement>('#newsItemTemp').content.cloneNode(true) as HTMLElement;
 
-            idx % 2 && $newsItem && $newsItem.classList.add('alt');
+            if (idx % 2) {
+                $('.news__item', $newsClone).classList.add('alt');
+            }
 
-            $newsMetaPhoto &&
-                ($newsMetaPhoto.style.backgroundImage = `url(${item.urlToImage || 'img/news_placeholder.jpg'})`);
-            $newsMetaAuthor && ($newsMetaAuthor.textContent = item.author || item.source.name);
-            $newsMetaDate && ($newsMetaDate.textContent = item.publishedAt.slice(0, 10).split('-').reverse().join('-'));
+            $('.news__meta-photo', $newsClone).style.backgroundImage = `url(${
+                item.urlToImage || 'img/news_placeholder.jpg'
+            })`;
+            $('.news__meta-author', $newsClone).textContent = item.author || item.source.name;
+            $('.news__meta-date', $newsClone).textContent = item.publishedAt
+                .slice(0, 10)
+                .split('-')
+                .reverse()
+                .join('-');
 
-            const $newsDescriptionTitle = $newsClone.querySelector('.news__description-title');
-            const $newsDescriptionSource = $newsClone.querySelector('.news__description-source');
-            const $newsDescriptionContent = $newsClone.querySelector('.news__description-content');
-            const $newsReadMore = $newsClone.querySelector('.news__read-more a');
-            $newsDescriptionTitle && ($newsDescriptionTitle.textContent = item.title);
-            $newsDescriptionSource && ($newsDescriptionSource.textContent = item.source.name);
-            $newsDescriptionContent && ($newsDescriptionContent.textContent = item.description);
-            $newsReadMore && $newsReadMore.setAttribute('href', item.url);
+            $('.news__description-title', $newsClone).textContent = item.title;
+            $('.news__description-source', $newsClone).textContent = item.source.name;
+            $('.news__description-content', $newsClone).textContent = item.description;
+            $('.news__read-more a', $newsClone).setAttribute('href', item.url);
 
-            fragment.append($newsClone);
+            $fragment.append($newsClone);
         });
 
-        const $news = document.querySelector<HTMLElement>('.news');
-        if (!$news) throw new Error('На странице отсутствует #news');
-        $news.innerHTML = '';
-        $news.appendChild(fragment);
+        $('.news').innerHTML = '';
+        $('.news').appendChild($fragment);
     }
 }
 
